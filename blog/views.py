@@ -17,7 +17,6 @@ def post_new(request):
             if form.is_valid():
                 post = form.save(commit=False)
                 post.author = request.user
-                post.published_date = timezone.now()
                 post.save()
                 return redirect('blog.views.post_detail', pk=post.pk)
         else:
@@ -48,3 +47,17 @@ def add_comment_to_post(request, pk):
     else:
         form = CommentForm()
     return render(request, 'blog/add_comment_to_post.html', {'form': form})
+
+def post_draft_list(request):
+    posts = Post.objects.filter(published_date__isnull=True).order_by('created_date')
+    return render(request, 'blog/post_draft_list.html', {'posts': posts})
+
+def post_publish(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    post.publish()
+    return redirect('blog.views.post_detail', pk=pk)
+
+def post_remove(request, pk):
+    post = get_object_or_404(Post, pk=pk)
+    post.delete()
+    return redirect('blog.views.post_list')
